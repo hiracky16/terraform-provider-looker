@@ -27,3 +27,8 @@ resource "looker_folder" "my_folder" {
 ### Optional
 
 - `parent_id` (String) The ID of the parent folder. If not provided, it may default to a root-level entry depending on permissions.
+
+### Read-Only
+
+- `content_metadata_id` (String) The ID of the content metadata associated with the folder.
+- `id` (String) The ID of this resource.

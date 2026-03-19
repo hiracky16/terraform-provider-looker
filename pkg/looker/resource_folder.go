@@ -27,6 +27,10 @@ func resourceFolder() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"content_metadata_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -53,6 +57,11 @@ func resourceFolderCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	d.SetId(*folder.Id)
+	if folder.ContentMetadataId != nil {
+		if err = d.Set("content_metadata_id", *folder.ContentMetadataId); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 
 	return resourceFolderRead(ctx, d, m)
 }
@@ -78,6 +87,12 @@ func resourceFolderRead(ctx context.Context, d *schema.ResourceData, m interface
 	} else {
 		// Root folder has no parent_id
 		if err = d.Set("parent_id", ""); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if folder.ContentMetadataId != nil {
+		if err = d.Set("content_metadata_id", *folder.ContentMetadataId); err != nil {
 			return diag.FromErr(err)
 		}
 	}
