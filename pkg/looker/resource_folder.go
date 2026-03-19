@@ -2,6 +2,7 @@ package looker
 
 import (
 	"context"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -73,6 +74,10 @@ func resourceFolderRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	folder, err := client.Folder(folderID, "", nil)
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			d.SetId("")
+			return nil
+		}
 		return diag.FromErr(wrapSDKError(err, "Folder", "folder", "%s", folderID))
 	}
 
@@ -82,11 +87,6 @@ func resourceFolderRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	if folder.ParentId != nil {
 		if err = d.Set("parent_id", *folder.ParentId); err != nil {
-			return diag.FromErr(err)
-		}
-	} else {
-		// Root folder has no parent_id
-		if err = d.Set("parent_id", ""); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -115,9 +115,11 @@ func resourceFolderUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	if d.HasChange("parent_id") {
-		parentID := d.Get("parent_id").(string)
-		updateFolder.ParentId = &parentID
-		hasChanges = true
+		if v, ok := d.GetOk("parent_id"); ok {
+			parentID := v.(string)
+			updateFolder.ParentId = &parentID
+			hasChanges = true
+		}
 	}
 
 	if hasChanges {
@@ -138,6 +140,9 @@ func resourceFolderDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	_, err := client.DeleteFolder(folderID, nil)
 	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			return nil
+		}
 		return diag.FromErr(wrapSDKError(err, "DeleteFolder", "folder", "name=%s, id=%s", folderName, folderID))
 	}
 

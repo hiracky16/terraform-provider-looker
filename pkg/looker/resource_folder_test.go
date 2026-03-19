@@ -54,17 +54,15 @@ func testAccCheckFolderDestroy(s *terraform.State) error {
 
 		folderID := rs.Primary.ID
 
-		folder, err := client.Folder(folderID, "", nil)
+		_, err := client.Folder(folderID, "", nil)
 		if err != nil {
 			if strings.Contains(err.Error(), "404") {
-				return nil // successfully destroyed
+				continue // successfully destroyed
 			}
 			return err
 		}
 
-		if folder.Name == rs.Primary.Attributes["name"] {
-			return fmt.Errorf("folder still exists: %s", rs.Primary.ID)
-		}
+		return fmt.Errorf("folder still exists: %s", rs.Primary.ID)
 	}
 
 	return nil
@@ -77,4 +75,30 @@ func folderConfig(name, parentID string) string {
 		parent_id = "%s"
 	}
 	`, name, parentID)
+}
+
+func folderConfigWithoutParentID(name string) string {
+	return fmt.Sprintf(`
+	resource "looker_folder" "test_no_parent" {
+		name = "%s"
+	}
+	`, name)
+}
+
+func TestAcc_FolderWithoutParentID(t *testing.T) {
+	name := strings.ToUpper(acctest.RandStringFromCharSet(10, acctest.CharSetAlpha))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: folderConfigWithoutParentID(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("looker_folder.test_no_parent", "name", name),
+				),
+			},
+		},
+		CheckDestroy: testAccCheckFolderDestroy,
+	})
 }
