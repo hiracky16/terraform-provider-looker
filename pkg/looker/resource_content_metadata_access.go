@@ -2,6 +2,7 @@ package looker
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -17,7 +18,20 @@ func resourceContentMetadataAccess() *schema.Resource {
 		UpdateContext: resourceContentMetadataAccessUpdate,
 		DeleteContext: resourceContentMetadataAccessDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: func(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+				idParts := strings.SplitN(d.Id(), "/", 2)
+				if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+					return nil, fmt.Errorf("unexpected format of ID (%q), expected content_metadata_id/access_id", d.Id())
+				}
+
+				if err := d.Set("content_metadata_id", idParts[0]); err != nil {
+					return nil, err
+				}
+
+				d.SetId(idParts[1])
+
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 
 		Schema: map[string]*schema.Schema{
