@@ -33,6 +33,13 @@ func TestAcc_ContentMetadataAccess_Group(t *testing.T) {
 					resource.TestCheckResourceAttr("looker_content_metadata_access.test", "permission_type", "edit"),
 				),
 			},
+			// Test: Import
+			{
+				ResourceName:      "looker_content_metadata_access.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: contentMetadataAccessImportStateIdFunc("looker_content_metadata_access.test"),
+			},
 		},
 		CheckDestroy: testAccCheckContentMetadataAccessDestroy,
 	})
@@ -53,6 +60,13 @@ func TestAcc_ContentMetadataAccess_User(t *testing.T) {
 					resource.TestCheckResourceAttrSet("looker_content_metadata_access.test", "user_id"),
 				),
 			},
+			// Test: Import
+			{
+				ResourceName:      "looker_content_metadata_access.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: contentMetadataAccessImportStateIdFunc("looker_content_metadata_access.test"),
+			},
 		},
 		CheckDestroy: testAccCheckContentMetadataAccessDestroy,
 	})
@@ -69,6 +83,16 @@ func TestAcc_ContentMetadataAccess_InvalidID(t *testing.T) {
 			},
 		},
 	})
+}
+
+func contentMetadataAccessImportStateIdFunc(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("resource not found: %s", resourceName)
+		}
+		return rs.Primary.Attributes["content_metadata_id"] + "/" + rs.Primary.ID, nil
+	}
 }
 
 func testAccCheckContentMetadataAccessDestroy(s *terraform.State) error {
