@@ -144,9 +144,17 @@ func resourceContentMetadataAccessRead(ctx context.Context, d *schema.ResourceDa
 		if err = d.Set("user_id", *found.UserId); err != nil {
 			return diag.FromErr(err)
 		}
+	} else {
+		if err = d.Set("user_id", ""); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 	if found.GroupId != nil {
 		if err = d.Set("group_id", *found.GroupId); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err = d.Set("group_id", ""); err != nil {
 			return diag.FromErr(err)
 		}
 	}
