@@ -111,8 +111,17 @@ func resourceContentMetadataAccessRead(ctx context.Context, d *schema.ResourceDa
 		return nil
 	}
 
-	if err = d.Set("content_metadata_id", found.ContentMetadataId); err != nil {
+	if found.ContentMetadataId == nil {
+		d.SetId("")
+		return nil
+	}
+	if err = d.Set("content_metadata_id", *found.ContentMetadataId); err != nil {
 		return diag.FromErr(err)
+	}
+
+	if found.PermissionType == nil {
+		d.SetId("")
+		return nil
 	}
 	if err = d.Set("permission_type", string(*found.PermissionType)); err != nil {
 		return diag.FromErr(err)
