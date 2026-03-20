@@ -2,6 +2,7 @@ package looker
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -64,7 +65,7 @@ func TestAcc_ContentMetadataAccess_InvalidID(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      `resource "looker_content_metadata_access" "test" { content_metadata_id = "999999"; group_id = "1"; permission_type = "view" }`,
-				ExpectError: fmt.Errorf("404"),
+				ExpectError: regexp.MustCompile("404"),
 			},
 		},
 	})
