@@ -32,4 +32,5 @@ resource "looker_folder" "my_folder" {
 
 ### Read-Only
 
+- `content_metadata_id` (String)
 - `id` (String) The ID of this resource.
