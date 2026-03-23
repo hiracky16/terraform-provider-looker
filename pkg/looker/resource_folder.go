@@ -32,6 +32,12 @@ func resourceFolder() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"inherits": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Whether content inherits its access levels from parent. Set to false to manage access with looker_content_metadata_access.",
+			},
 		},
 	}
 }
@@ -61,6 +67,14 @@ func resourceFolderCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	if folder.ContentMetadataId != nil {
 		if err = d.Set("content_metadata_id", *folder.ContentMetadataId); err != nil {
 			return diag.FromErr(err)
+		}
+
+		inherits := d.Get("inherits").(bool)
+		_, err = client.UpdateContentMetadata(*folder.ContentMetadataId, apiclient.WriteContentMeta{
+			Inherits: &inherits,
+		}, nil)
+		if err != nil {
+			return diag.FromErr(wrapSDKError(err, "UpdateContentMetadata", "folder", "content_metadata_id=%s", *folder.ContentMetadataId))
 		}
 	}
 
@@ -95,6 +109,16 @@ func resourceFolderRead(ctx context.Context, d *schema.ResourceData, m interface
 		if err = d.Set("content_metadata_id", *folder.ContentMetadataId); err != nil {
 			return diag.FromErr(err)
 		}
+
+		contentMeta, err := client.ContentMetadata(*folder.ContentMetadataId, "", nil)
+		if err != nil {
+			return diag.FromErr(wrapSDKError(err, "ContentMetadata", "folder", "content_metadata_id=%s", *folder.ContentMetadataId))
+		}
+		if contentMeta.Inherits != nil {
+			if err = d.Set("inherits", *contentMeta.Inherits); err != nil {
+				return diag.FromErr(err)
+			}
+		}
 	}
 
 	return nil
@@ -126,6 +150,19 @@ func resourceFolderUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 		_, err := client.UpdateFolder(folderID, updateFolder, nil)
 		if err != nil {
 			return diag.FromErr(wrapSDKError(err, "UpdateFolder", "folder", "id=%s", folderID))
+		}
+	}
+
+	if d.HasChange("inherits") {
+		contentMetadataID := d.Get("content_metadata_id").(string)
+		if contentMetadataID != "" {
+			inherits := d.Get("inherits").(bool)
+			_, err := client.UpdateContentMetadata(contentMetadataID, apiclient.WriteContentMeta{
+				Inherits: &inherits,
+			}, nil)
+			if err != nil {
+				return diag.FromErr(wrapSDKError(err, "UpdateContentMetadata", "folder", "content_metadata_id=%s", contentMetadataID))
+			}
 		}
 	}
 

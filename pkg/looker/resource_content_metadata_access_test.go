@@ -78,7 +78,13 @@ func TestAcc_ContentMetadataAccess_InvalidID(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config:      `resource "looker_content_metadata_access" "test" { content_metadata_id = "999999"; group_id = "1"; permission_type = "view" }`,
+				Config: `
+resource "looker_content_metadata_access" "test" {
+  content_metadata_id = "999999"
+  group_id            = "1"
+  permission_type     = "view"
+}
+`,
 				ExpectError: regexp.MustCompile("404"),
 			},
 		},
@@ -129,6 +135,7 @@ func contentMetadataAccessConfigGroup(folderName, groupName, permission string) 
 	resource "looker_folder" "test" {
 		name      = "%s"
 		parent_id = "1"
+		inherits  = false
 	}
 
 	resource "looker_group" "test" {
@@ -148,6 +155,7 @@ func contentMetadataAccessConfigUser(folderName, userName, permission string) st
 	resource "looker_folder" "test" {
 		name      = "%s"
 		parent_id = "1"
+		inherits  = false
 	}
 
 	resource "looker_user" "test" {
