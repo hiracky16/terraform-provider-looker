@@ -7,7 +7,7 @@ toolchain go1.25.5
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.20.1
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.13.0
-	github.com/looker-open-source/sdk-codegen/go v0.26.2
+	github.com/looker-open-source/sdk-codegen/go v0.26.6
 	github.com/stretchr/testify v1.8.2
 )
 
